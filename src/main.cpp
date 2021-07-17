@@ -3,29 +3,34 @@
 #include <BluetoothSerial.h>
 #include <ArduinoJson.h>
 
-int led_pin = 2;
 String espName = "ESP32 by Codecrafter";
-
 String token = "1234567890";
 
 BluetoothSerial bt;
-boolean open = false;
+int led_pin = 2;
 
 struct request
 {
-  const char* action;
-  const char* token;
-  const char* parseError;
+  const char* action = "";
+  const char* token = "";
+  const char* parseError = "";
 };
 
 struct response
 {
   boolean succed;
-  const char* data;
+  const char* data = "";
 };
 
 
 String generateResponse(response res){
+  /* 
+  {
+   "succed": "true",
+   "data": ""
+  }
+  */
+
   DynamicJsonDocument doc(1024);
   doc["succed"] = res.succed;
   doc["data"] = res.data;
@@ -58,6 +63,11 @@ request parseJson(String json){
   return result;
 }
 
+void openGate(){
+  digitalWrite(led_pin, HIGH);
+  delay(1000);
+  digitalWrite(led_pin, LOW);
+}
 
 
 void setup() {
@@ -71,11 +81,51 @@ void setup() {
   Serial.print("Initalization finished.\n");
 }
 
-void loop() {
-
+void loop() {  
   if(bt.available()){
     String read = bt.readString(); 
+    // Try to parse JSON
+    request req;
+    try{
+      req = parseJson(read);
+    }catch(const char* error){
+      Serial.printf("[ERROR] %s", error);
+      response res;
+      res.succed = false;
+      res.data = "INVALID JSON";
+      bt.println(generateResponse(res));
+      return;
+    }
 
+    // Error by parse?
+    if(strcmp(req.parseError, "")){
+      Serial.println("test1");
+      Serial.printf("[ERROR] %s", req.parseError);
+
+      response res;
+      res.succed = false;
+      res.data = "INVALID JSON";
+
+      bt.println(generateResponse(res));
+      return;
+    }
+
+    // React to Action
+    if(!strcmp(req.action, "open")){
+      // Open gate
+      if(!strcmp(req.token, token.c_str())){
+        openGate();
+        response res;
+        res.succed = true;
+        res.data = "";
+        bt.println(generateResponse(res));
+      }else{
+        response res;
+        res.succed = false;
+        res.data = "INVALID TOKEN";
+        bt.println(generateResponse(res));
+      }
+    }
   }
 }
 
