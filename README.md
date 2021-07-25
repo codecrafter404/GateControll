@@ -1,6 +1,8 @@
 # GateControll
  Simple Programm to open a Gate using Bluetooth and the ESP32
  
+# WARNING!
+ Some values must adjusted! 
  # Example Json Payloads and Response
  ## Open Gate
  ### Request
