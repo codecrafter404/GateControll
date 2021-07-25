@@ -3,11 +3,38 @@
 #include <BluetoothSerial.h>
 #include <ArduinoJson.h>
 
+int led_pin = 2;
+// In Seconds
+int gateLockDelay = 30;
+// In millis
+int gateToggleDelay = 1000;
+
 String espName = "ESP32 by Codecrafter";
 String token = "1234567890";
 
 BluetoothSerial bt;
-int led_pin = 2;
+
+hw_timer_t * timer = NULL;
+portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
+
+volatile boolean isOpening = false;
+
+
+// Unlock Gate
+void IRAM_ATTR onUnlockGate() {
+  portENTER_CRITICAL_ISR(&timerMux);
+  isOpening = false;
+  portEXIT_CRITICAL_ISR(&timerMux);
+  timerAlarmDisable(timer);		// stop alarm
+  timerDetachInterrupt(timer);	// detach interrupt
+  timerEnd(timer);
+}
+
+void setupTimer(){
+  timer = timerBegin(0, 80, true);
+  timerAttachInterrupt(timer, &onUnlockGate, true);
+  timerAlarmWrite(timer, 1000000 * gateLockDelay, false);
+}
 
 struct request
 {
@@ -64,8 +91,16 @@ request parseJson(String json){
 }
 
 void openGate(){
+  Serial.println("Opening gate!");
+  portENTER_CRITICAL(&timerMux);
+  isOpening = true;
+  portEXIT_CRITICAL(&timerMux);
+  
+  setupTimer();
+  timerAlarmEnable(timer);
+
   digitalWrite(led_pin, HIGH);
-  delay(1000);
+  delay(gateToggleDelay);
   digitalWrite(led_pin, LOW);
 }
 
@@ -78,6 +113,8 @@ void setup() {
   Serial.println("Setting up BT");
 
   bt.begin(espName);
+
+  Serial.println("Setting up Timer");
   Serial.print("Initalization finished.\n");
 }
 
@@ -114,18 +151,56 @@ void loop() {
     if(!strcmp(req.action, "open")){
       // Open gate
       if(!strcmp(req.token, token.c_str())){
-        openGate();
-        response res;
-        res.succed = true;
-        res.data = "";
-        bt.println(generateResponse(res));
+
+        if(!isOpening){
+          openGate();
+          response res;
+          res.succed = true;
+          res.data = "";
+          bt.println(generateResponse(res));
+        }else{
+          response res;
+          res.succed = false;
+          res.data = "GATE IS OPENING";
+          bt.println(generateResponse(res));
+        }
+
       }else{
         response res;
         res.succed = false;
         res.data = "INVALID TOKEN";
         bt.println(generateResponse(res));
       }
+      return;
     }
+    if(!strcmp(req.action, "state")){
+      // Open gate
+      if(!strcmp(req.token, token.c_str())){
+
+        String state = "";
+        if(isOpening){
+          state = "OPENING";
+        }else{
+          state = "READY";
+        }
+        response res;
+        res.succed = true;
+        res.data = state.c_str();
+        bt.println(generateResponse(res));
+
+      }else{
+        response res;
+        res.succed = false;
+        res.data = "INVALID TOKEN";
+        bt.println(generateResponse(res));
+      }
+      return;
+    }
+
+    response res;
+    res.succed = false;
+    res.data = "INVALID ACTION";
+    bt.println(generateResponse(res));
   }
 }
 
