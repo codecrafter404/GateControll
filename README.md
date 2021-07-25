@@ -2,20 +2,36 @@
  Simple Programm to open a Gate using Bluetooth and the ESP32
  
  # Example Json Payloads and Response
- ## Open Gate Request
+ ## Open Gate
+ ### Request
 ```
 {
   "action": "open",
   "token": "Defined Token"
 }
 ```
-## Response
+### Response
 ```
 {
   "succed": "true",
   "data": "If isn't succed, then here is the Error message..."
 }
 ```
+## Get State
+### Request
+´´´
+{
+  "action": "state",
+  "token": "Defined Token"
+}
+´´´
+### Response
+´´´
+{
+  "succed": "true",
+  "data": "The state (OPENING or READY)"
+}
+´´´
 # Configurable Options in main.cpp
 | Option | Default | Datatype | Description |
 | --- | --- | --- | --- |
