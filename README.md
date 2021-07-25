@@ -37,6 +37,6 @@
 | --- | --- | --- | --- |
 | led_pin | 2 | int | The Output pin on your ESP32 |
 | gateLockDelay | 30 | int | The while the Gate is opening (dont accept Request), in Seconds |
-| gateToggleDelay | 10000 | int | The blink time (Between on/off) |
+| gateToggleDelay | 10000 | int | The blink time (Between on/off), in millis |
 | espName | ESP32 by Codecrafter | string | The Beacon name |
 | token | 1234567890 | string | The security Token |
