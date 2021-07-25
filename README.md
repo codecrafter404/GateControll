@@ -19,19 +19,19 @@
 ```
 ## Get State
 ### Request
-´´´
+```
 {
   "action": "state",
   "token": "Defined Token"
 }
-´´´
+```
 ### Response
-´´´
+```
 {
   "succed": "true",
   "data": "The state (OPENING or READY)"
 }
-´´´
+```
 # Configurable Options in main.cpp
 | Option | Default | Datatype | Description |
 | --- | --- | --- | --- |
