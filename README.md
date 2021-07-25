@@ -11,10 +11,10 @@
 ```
 ## Response
 ```
- {
-   "succed": "true",
-   "data": "If isn't succed, then here is the Error message..."
- }
+{
+  "succed": "true",
+  "data": "If isn't succed, then here is the Error message..."
+}
 ```
 # Configurable Options in main.cpp
 | Option | Default | Datatype | Description |
