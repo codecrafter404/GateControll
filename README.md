@@ -1,3 +1,5 @@
+# Archive Note
+I'd highly advise you to **not** use this app.
 # GateControll
  Simple Programm to open a Gate using Bluetooth and the ESP32
  
